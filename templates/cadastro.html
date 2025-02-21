@@ -8,31 +8,37 @@
     <link rel="shortcut icon" href="IMG/" type="image/x-icon">
 
     <link rel="shortcut icon" href="IMG/logo.png" type="image/x-icon">
-    <title>Controlador de Gastos - Login</title>
+    <title>Controlador de Gastos - Cadastro</title>
 </head>
 <body>
 
     <main>
 
-    <form id='form-login' action="Controlador.html">
+    <form id='form-cadastro'>
         <img src="IMG/logo.png" alt="user-image" class="img-login">
 
         <label for="email">E-mail</label><br>
         <div class="input-wrapper">
             <img src="IMG/user.png" alt="user-image" class="img-icon">
-        <input type="text" id="user" name="user" required><br>
+        <input type="text" id="user_cadastro" name="user_cadastro" required><br>
         </div>
         
         
         <label for="senha">Senha</label><br>
         <div class="input-wrapper">
             <img src="IMG/password.svg" alt="user-image" class="img-icon">
-        <input type="password" id="senha" name="senha" required>
+        <input type="password" id="senha_cadastro" name="senha_cadastro" required>
+        </div>
+
+        <label for="senha">Confirmar Senha</label><br>
+        <div class="input-wrapper">
+            <img src="IMG/password.svg" alt="user-image" class="img-icon">
+        <input type="password" id="senha_confirmar" name="senha_confirmar" required>
         </div>
 
         <button class="btn">Concluir</button>
 
-        <p>Não tem cadastro?<a href="cadastro.html"> Clique Aqui</a></p>
+        <p>Já tem cadastro?<a href="index.html"> Clique Aqui</a></p>
     </form>
 
     </main>
