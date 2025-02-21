@@ -6,37 +6,41 @@ const routes = express();
 
 routes.use(express.static(path.join(__dirname, '../templates')));
 
-//Home
-routes.get('/', (req,res) =>{
-    res.sendFile(path.join(__dirname,'../templates', 'index.html'))
-    res.status(200)
-})
 
 //Login
-routes.get('/login', (req,res) =>{
-    console.log("Usuário Logado com sucesso!")
-    res.status(200)
+routes.post('/login', async (req,res) =>{
+    try{
+        const {username, password} = req.body
+        
+        const result = await db.query('SELECT * FROM "USERS" WHERE username = $1', [username]);
+
+        if (result.rows.length === 0){
+            return res.status(400).json({message: 'Usuário não encontrado'});
+        }
+
+        const user = result.rows[0]
+
+        const Match = await bcrypt.compare(password, user.password);
+
+        if(!Match){
+            return res.status(400).json({message: 'Senha incorreta'});
+        }
+
+        const token = jwt.sign({id: user.id, user: user.username}, SECRET_KEY, {expiresIn: '1h'});
+
+        return res.json({message: 'Login Bem-sucedido', token});
+    }
+    catch (err){    
+        console.log("Erro no servidor: ", err)
+        return res.status(500).json({messagem: 'Erro interno no servidor. Tente novamente em breve'})
+    }
 })
 
 //Cadastro
-routes.get('/cadastro', (req,res) =>{
+routes.post('/cadastro', (req,res) =>{
 
     console.log("Usuário Criado com sucesso!")
     res.status(201)
 })  
-
-//Usuários
-routes.get("/usuarios", async (req, res) => {
-    try {
-        const result = await db.query('SELECT * FROM "USERS"');
-        res.json(result.rows);
-        res.status(200).json(result.rows);
-        console.log("Consulta realizada com sucesso!")
-      } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Erro ao buscar usuários" });
-        console.log("Erro ao buscar usuários.")
-      }
-  });
 
 module.exports = routes;
