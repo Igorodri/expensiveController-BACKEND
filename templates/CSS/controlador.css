@@ -1,0 +1,77 @@
+body{
+    background-color: brown;
+    font-family:cursive;
+}
+
+main{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#container{
+    margin-top: 40px;
+}
+
+table{ 
+    background-color: white;
+    text-align: center;
+}
+
+table th{
+    border: 2px solid brown;
+    color: brown;
+    padding: 8px;
+
+}
+
+table td{
+    border: 2px solid brown;
+    padding: 10px;
+}
+
+input{
+    border: none;
+    font-size: 16px;
+    outline: none;
+    text-align: center;
+    width: 200px;
+}
+
+
+#table_2{
+    border-radius: 10px;
+    padding: 1px;
+}
+
+#table_2 td{
+    padding: 1px;
+}
+
+.button{
+    padding: 5px;
+    width: 40px;
+    margin-right: 10px;
+    margin-bottom: 15px;
+    border-radius: 100px;
+    background-color: white;
+    color: brown;
+    font-size: 24px;
+}
+
+.button_att{
+    background-color: white;
+    color: brown;
+    font-weight: bold;
+}
+
+#area_remove_add{
+    margin-bottom: 15px;
+    margin-top: 15px;
+}
+
+#area_remove_add input{
+    margin-top: 5px;
+    padding: 4px;
+    border-radius: 10px;
+}
