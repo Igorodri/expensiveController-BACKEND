@@ -5,7 +5,7 @@ const publicRoutes = require('./routes/public.js');
 const app = http()
 
 const corsOptions = {
-    origin: ['http://127.0.0.1:5500'],  // substitua pelo domínio do seu frontend
+    origin: ['http://127.0.0.1:5500'], 
     methods: ['GET', 'POST', 'DELETE', 'PUT'],
   };
 
@@ -14,6 +14,8 @@ app.use(cors(corsOptions))
 app.use(http.json());
 
 app.use('/', publicRoutes)
+
+app.use('/login', publicRoutes)
 
 app.use('/login', publicRoutes)
 

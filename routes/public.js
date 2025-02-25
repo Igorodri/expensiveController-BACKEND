@@ -1,46 +1,72 @@
 const express = require('express');
 const db = require('../database.js');
+const bcrypt = require('bcrypt');
 const path = require('path');
+const { json } = require('stream/consumers');
 
 const routes = express();
 
-routes.use(express.static(path.join(__dirname, '../templates')));
+routes.use(express.json());
 
 
 //Login
 routes.post('/login', async (req,res) =>{
-    try{
-        const {username, password} = req.body
-        
-        const result = await db.query('SELECT * FROM "USERS" WHERE username = $1', [username]);
 
-        if (result.rows.length === 0){
-            return res.status(400).json({message: 'Usuário não encontrado'});
-        }
+    const {username, password} = req.body
 
-        const user = result.rows[0]
-
-        const Match = await bcrypt.compare(password, user.password);
-
-        if(!Match){
-            return res.status(400).json({message: 'Senha incorreta'});
-        }
-
-        const token = jwt.sign({id: user.id, user: user.username}, SECRET_KEY, {expiresIn: '1h'});
-
-        return res.json({message: 'Login Bem-sucedido', token});
+    if(!username || !password){
+        return res.status(400).json({error: "Usarname ou password não foram preenchidos devidamente"})
     }
-    catch (err){    
-        console.log("Erro no servidor: ", err)
-        return res.status(500).json({messagem: 'Erro interno no servidor. Tente novamente em breve'})
+    
+    try{
+        const userExist = await db.query('SELECT * FROM "USERS" WHERE USERNAME LIKE $1', [username]);
+
+        if(userExist.rows.length === 0){
+            return res.status(400).json({error: "Usuário não encontrado"});
+        }else{
+            return res.status(200).json({message: 'Logando usuário'});
+        }
+
+    }catch(error){
+        console.log(error);
+        return res.status(500).json({error: 'Erro interno no servidor'});
     }
 })
 
-//Cadastro
-routes.post('/cadastro', (req,res) =>{
+// Cadastro
+routes.post('/cadastro', async (req, res) => {
+    const { username, password, confirmpassword } = req.body;
 
-    console.log("Usuário Criado com sucesso!")
-    res.status(201)
-})  
+    if (!username || !password || !confirmpassword) {
+        return res.status(400).json({ error: "Todos os campos são obrigatórios." });
+    }
+
+    
+    if (password.trim() !== confirmpassword.trim()) {
+        return res.status(400).json({ error: "O campo Confirmar Senha está diferente da Senha definida." });
+    }
+
+    try {
+        const userExist = await db.query('SELECT * FROM users WHERE username = $1', [username]);
+
+        if (userExist.rowCount > 0) {
+            return res.status(400).json({ error: "Usuário já existe" });
+        }
+
+    
+        const saltRounds = 10;
+        const cryptPassword = await bcrypt.hash(password, saltRounds);
+
+        
+        await db.query('INSERT INTO users (username, password) VALUES ($1, $2)', [username, cryptPassword]);
+
+        return res.status(201).json({ message: "Usuário cadastrado com sucesso!" });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Erro interno do servidor" });
+    }
+});
+
 
 module.exports = routes;
