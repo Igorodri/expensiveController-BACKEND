@@ -20,9 +20,12 @@ routes.post('/login', async (req,res) =>{
     
     try{
         const userExist = await db.query('SELECT * FROM "USERS" WHERE USERNAME LIKE $1', [username]);
+        const passwordValidat = await db.query('SELECT * FROM "USERS" WHERE USERNAME LIKE $1 AND PASSWORD LIKE $2', [username, password])
 
         if(userExist.rows.length === 0){
             return res.status(400).json({error: "Usuário não encontrado"});
+        }if(passwordValidat.rows.length === 0){
+            return res.status(400).json({error: "Usuário ou senha incorretos"});
         }else{
             return res.status(200).json({message: 'Logando usuário'});
         }
@@ -41,24 +44,19 @@ routes.post('/cadastro', async (req, res) => {
         return res.status(400).json({ error: "Todos os campos são obrigatórios." });
     }
 
-    
-    if (password.trim() !== confirmpassword.trim()) {
-        return res.status(400).json({ error: "O campo Confirmar Senha está diferente da Senha definida." });
-    }
-
     try {
-        const userExist = await db.query('SELECT * FROM users WHERE username = $1', [username]);
+        const userExist = await db.query('SELECT * FROM "USERS" WHERE username = $1', [username]);
 
         if (userExist.rowCount > 0) {
             return res.status(400).json({ error: "Usuário já existe" });
         }
 
     
-        const saltRounds = 10;
-        const cryptPassword = await bcrypt.hash(password, saltRounds);
+        // const saltRounds = 10;
+        // const cryptPassword = await bcrypt.hash(password, saltRounds);
 
         
-        await db.query('INSERT INTO users (username, password) VALUES ($1, $2)', [username, cryptPassword]);
+        await db.query('INSERT INTO "USERS" (username, password) VALUES ($1, $2)', [username, password]);
 
         return res.status(201).json({ message: "Usuário cadastrado com sucesso!" });
 

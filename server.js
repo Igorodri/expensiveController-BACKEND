@@ -17,7 +17,7 @@ app.use('/', publicRoutes)
 
 app.use('/login', publicRoutes)
 
-app.use('/login', publicRoutes)
+app.use('/cadastro', publicRoutes)
 
 app.listen(3000, () => {
     console.log("Servidor Rodando na porta: http://localhost:3000")
