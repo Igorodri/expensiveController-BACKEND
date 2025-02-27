@@ -1,6 +1,7 @@
 const http = require('express');
 const cors = require('cors');
 const publicRoutes = require('./routes/public.js');
+const privateRoutes = require('./routes/private.js')
 
 const app = http()
 
@@ -15,9 +16,7 @@ app.use(http.json());
 
 app.use('/', publicRoutes)
 
-app.use('/login', publicRoutes)
-
-app.use('/cadastro', publicRoutes)
+app.use('/user', privateRoutes)
 
 app.listen(3000, () => {
     console.log("Servidor Rodando na porta: http://localhost:3000")
