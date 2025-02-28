@@ -1,36 +1,46 @@
-const express = require('express');  // Corrigido: Importando express corretamente
+const express = require('express'); 
 const cors = require('cors');
-const session = require('express-session');
-const routes = require('./routes/routes.js');
+const routes = require('./routes/routes.js'); 
+const jwt = require('jsonwebtoken');
 
-const app = express();  // Mudança de 'http' para 'express'
+const app = express();  
 
-// Configuração do CORS
 const corsOptions = {
-    origin: ['http://127.0.0.1:5500'],  // Substitua pelo seu domínio de frontend em produção
+    origin: ['http://127.0.0.1:5500'],  
     credentials: true
 };
 
-app.use(session({
-    secret: 'meu-segredo', 
-    resave: false,
-    saveUninitialized: true,
-    cookie: { 
-        secure: false, // Defina como 'false' para desenvolvimento local
-        httpOnly: true, // Aumenta a segurança ao impedir o acesso ao cookie via JavaScript
-        sameSite: 'lax',
-        maxAge: 24 * 60 * 60 * 1000  // Sessão dura 1 dia, ajustável conforme necessário
+const SECRET_KEY = 'meu-segredo';
+
+
+function verificarAutenticacao(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; 
+
+    if (!token) {
+        return res.status(401).json({ error: "Token não fornecido." });
     }
-}));
+
+    jwt.verify(token, SECRET_KEY, (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ error: "Token inválido ou expirado." });
+        }
+        req.userId = decoded.userId; 
+        next(); 
+    });
+}
 
 
 app.use(cors(corsOptions));
 
-app.use(express.json());
+app.use(express.json()); 
+
 
 app.use('/', routes); 
- 
 
 app.listen(3000, () => {
     console.log("Servidor Rodando na porta: http://localhost:3000");
 });
+
+
+module.exports = verificarAutenticacao;

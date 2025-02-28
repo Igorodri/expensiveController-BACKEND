@@ -1,27 +1,38 @@
 const express = require('express');
-const session = require('express-session');
+const jwt = require('jsonwebtoken');
 const db = require('../database.js');
 const bcrypt = require('bcrypt');
-const path = require('path');
 
-const routes = express()
+const routes = express();
 
-routes.use(express.json());
-routes.use(express.urlencoded({ extended: true }));
+const SECRET_KEY = 'meu-segredo';
 
-routes.use(session({
-    secret: 'meu-segredo', 
-    resave: false,
-    saveUninitialized: true,
-    cookie: { 
-        secure: false, 
-        httpOnly: true, 
-        sameSite: 'lax'
+// Gerar Token
+function generateToken(userId) {
+    return jwt.sign({ userId }, SECRET_KEY, { expiresIn: '1h' });
+}
+
+
+// Função de autenticação usada nas rotas
+function verificarAutenticacao(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ error: "Token não fornecido." });
     }
-}));
 
+    jwt.verify(token, SECRET_KEY, (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ error: "Token inválido ou expirado." });
+        }
 
-// Login
+        req.userId = decoded.userId;
+        next();
+    });
+}
+
+// Rota de login
 routes.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
@@ -42,24 +53,19 @@ routes.post('/login', async (req, res) => {
             return res.status(400).json({ error: "Senha incorreta." });
         }
 
-        req.session.user_id = user.rows[0].id;
-
-        // Log para verificar o conteúdo da sessão
-        console.log("Sessão após login:", req.session); 
+        const token = generateToken(user.rows[0].id);
 
         return res.status(200).json({
             message: "Login bem-sucedido!",
-            user_id: req.session.user_id
+            token
         });
-
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: "Erro interno do servidor" });
     }
 });
 
-
-// Cadastro
+// Rota de cadastro
 routes.post('/cadastro', async (req, res) => {
     const { username, password, confirmpassword } = req.body;
 
@@ -79,7 +85,7 @@ routes.post('/cadastro', async (req, res) => {
         }
 
         const saltRounds = 10;
-        const cryptPassword = await bcrypt.hash(password, saltRounds); 
+        const cryptPassword = await bcrypt.hash(password, saltRounds);
 
         await db.query('INSERT INTO "USERS" (username, password) VALUES ($1, $2)', [username, cryptPassword]);
 
@@ -91,47 +97,28 @@ routes.post('/cadastro', async (req, res) => {
 });
 
 
-// Middleware de Verificação da Sessão
-function checkSession(req, res, next) {
-    console.log("Sessão no middleware checkSession:", req.session);  // Verifique aqui se o user_id está sendo passado
-    if (req.session.user_id) {
-        next();
-    } else {
-        res.status(401).json({ error: "Sessão inválida. Faça login novamente." });
-    }
-}
 
-
-
-// Rota Salvar (Privada)
-routes.post('/salvar', checkSession, async (req, res) => {
-    const { expensive_category, expensive_spent, expensive_cash } = req.body;
-
-    if (!expensive_category || !expensive_spent || !expensive_cash) {
-        return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
-    }
-
+//Rota Lista
+routes.get('/lista', verificarAutenticacao, async (req, res) => {
     try {
-        await db.query(
-            'INSERT INTO "CASH" (expensive_category, expensive_spent, expensive_cash, id_user) VALUES ($1, $2, $3, $4)',
-            [expensive_category, expensive_spent, expensive_cash, req.session.user_id]
-        );
+        const userId = req.userId; 
+        const result = await db.query('SELECT * FROM "CASH" WHERE id_user = $1', [userId]);
 
-        return res.status(201).json({ message: 'Registro inserido com sucesso' });
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Nenhum registro encontrado' });
+        }
+
+        return res.status(200).json({
+            message: 'Registros listados com sucesso!',
+            data: result.rows 
+        });
     } catch (error) {
-        console.error('Erro no servidor:', error);
+        console.error('Erro no servidor:', error.message);
         return res.status(500).json({ error: 'Erro interno no servidor' });
     }
 });
 
-// Logout
-routes.post('/logout', (req, res) => {
-    req.session.destroy((err) => {
-        if (err) {
-            return res.status(500).json({ error: "Erro ao tentar deslogar." });
-        }
-        res.status(200).json({ message: "Deslogado com sucesso!" });
-    });
-});
+
+
 
 module.exports = routes;
