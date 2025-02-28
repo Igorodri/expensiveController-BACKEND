@@ -1,23 +1,36 @@
-const http = require('express');
+const express = require('express');  // Corrigido: Importando express corretamente
 const cors = require('cors');
-const publicRoutes = require('./routes/public.js');
-const privateRoutes = require('./routes/private.js')
+const session = require('express-session');
+const routes = require('./routes/routes.js');
 
-const app = http()
+const app = express();  // Mudança de 'http' para 'express'
 
+// Configuração do CORS
 const corsOptions = {
-    origin: ['http://127.0.0.1:5500'], 
-    methods: ['GET', 'POST', 'DELETE', 'PUT'],
-  };
+    origin: ['http://127.0.0.1:5500'],  // Substitua pelo seu domínio de frontend em produção
+    credentials: true
+};
 
-app.use(cors(corsOptions))
+app.use(session({
+    secret: 'meu-segredo', 
+    resave: false,
+    saveUninitialized: true,
+    cookie: { 
+        secure: false, // Defina como 'false' para desenvolvimento local
+        httpOnly: true, // Aumenta a segurança ao impedir o acesso ao cookie via JavaScript
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60 * 1000  // Sessão dura 1 dia, ajustável conforme necessário
+    }
+}));
 
-app.use(http.json());
 
-app.use('/', publicRoutes)
+app.use(cors(corsOptions));
 
-app.use('/user', privateRoutes)
+app.use(express.json());
+
+app.use('/', routes); 
+ 
 
 app.listen(3000, () => {
-    console.log("Servidor Rodando na porta: http://localhost:3000")
-})
+    console.log("Servidor Rodando na porta: http://localhost:3000");
+});
