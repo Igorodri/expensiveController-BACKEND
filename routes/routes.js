@@ -13,7 +13,6 @@ function generateToken(userId) {
 }
 
 
-// Função de autenticação usada nas rotas
 function verificarAutenticacao(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -105,7 +104,7 @@ routes.get('/lista', verificarAutenticacao, async (req, res) => {
         const result = await db.query('SELECT * FROM "CASH" WHERE id_user = $1', [userId]);
 
         if (result.rowCount === 0) {
-            return res.status(404).json({ message: 'Nenhum registro encontrado' });
+            return res.status(404).json({ message: 'Não foi encontrado nenhum registro' });
         }
 
         return res.status(200).json({
@@ -117,6 +116,42 @@ routes.get('/lista', verificarAutenticacao, async (req, res) => {
         return res.status(500).json({ error: 'Erro interno no servidor' });
     }
 });
+
+
+//Rota Adicionar
+routes.post('/adicionar', verificarAutenticacao, async(req,res) => {
+    try{
+        const userId = req.userId;
+        const { expensive_category, expensive_spent, expensive_cash } = req.body;
+        
+        const result = await db.query(
+            'INSERT INTO "CASH" (expensive_category, expensive_spent, expensive_cash, id_user) VALUES ($1, $2, $3, $4) RETURNING *',
+            [expensive_category, expensive_spent, expensive_cash, userId]
+        );
+
+        if(result.rowCount === 0){
+            return res.status(404).json({message: 'Não foi encontrado nenhum registro'})
+        }
+
+        return res.status(200).json({message: 'Registro incluído com sucesso!', data: result.rows})
+        
+    } catch(error){
+        console.error('Error no servidor:', error.message);
+        return res.status(500).json({error: 'Erro interno no servidor'})
+    }
+})
+
+//Rota Excluir 
+routes.delete('deletar', verificarAutenticacao, async(req, res) => {
+    try{
+
+    }catch(error){
+        console.error('Error no servidor:', error.message);
+        return res.status(500).json({error: 'Erro interno no servidor'})
+    }
+})
+
+
 
 
 
