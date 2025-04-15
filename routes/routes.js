@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const db = require('../database.js');
 const bcrypt = require('bcrypt');
+const { user } = require('pg/lib/defaults.js');
 
 const routes = express();
 
@@ -142,14 +143,30 @@ routes.post('/adicionar', verificarAutenticacao, async(req,res) => {
 })
 
 //Rota Excluir 
-routes.delete('deletar', verificarAutenticacao, async(req, res) => {
-    try{
+routes.delete('/deletar', verificarAutenticacao, async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { expensive_id } = req.body;
 
-    }catch(error){
+        const cashId = parseInt(expensive_id, 10); 
+        
+        const result = await db.query(
+            'DELETE FROM "CASH" WHERE id = $1 AND id_user = $2',
+            [cashId, userId]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Nenhum registro encontrado para deletar.' });
+        }
+
+        return res.status(200).json({ message: 'Registro deletado com sucesso!' });
+
+    } catch (error) {
         console.error('Error no servidor:', error.message);
-        return res.status(500).json({error: 'Erro interno no servidor'})
+        return res.status(500).json({ error: 'Erro interno no servidor' });
     }
-})
+});
+
 
 
 
