@@ -165,7 +165,18 @@ routes.delete('/deletar', verificarAutenticacao, async (req, res) => {
         console.error('Error no servidor:', error.message);
         return res.status(500).json({ error: 'Erro interno no servidor' });
     }
-});
+});''
+
+//Rota Editar
+
+routes.put('/editar', verificarAutenticacao, async (req,res) => {
+    try{
+
+    }catch(error){
+        console.error("Erro no servidor: ", error.message)
+        return res.status(500).json({error: 'Erro interno no servidor'})
+    }
+})
 
 
 
