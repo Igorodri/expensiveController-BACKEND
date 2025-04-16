@@ -124,6 +124,10 @@ routes.post('/adicionar', verificarAutenticacao, async(req,res) => {
     try{
         const userId = req.userId;
         const { expensive_category, expensive_spent, expensive_cash } = req.body;
+
+        if(!expensive_category || !expensive_spent || !expensive_cash){
+            return res.status(404).json({message : "Campos obrigatórios não preenchidos"})
+        }
         
         const result = await db.query(
             'INSERT INTO "CASH" (expensive_category, expensive_spent, expensive_cash, id_user) VALUES ($1, $2, $3, $4) RETURNING *',
@@ -149,6 +153,11 @@ routes.delete('/deletar', verificarAutenticacao, async (req, res) => {
         const { expensive_id } = req.body;
 
         const cashId = parseInt(expensive_id, 10); 
+
+            if (isNaN(cashId)) {
+                return res.status(400).json({ message: 'ID inválido fornecido.' });
+            }
+
         
         const result = await db.query(
             'DELETE FROM "CASH" WHERE id = $1 AND id_user = $2',
