@@ -13,7 +13,7 @@ const corsOptions = {
 const SECRET_KEY = 'meu-segredo';
 
 
-function verificarAutenticacao(req, res, next) {
+function verificarAutenticacao(req, res, next               ) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1]; 
 
