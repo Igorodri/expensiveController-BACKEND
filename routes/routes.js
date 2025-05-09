@@ -180,6 +180,24 @@ routes.delete('/deletar', verificarAutenticacao, async (req, res) => {
 
 routes.put('/editar', verificarAutenticacao, async (req,res) => {
     try{
+        const userId = req.userId
+        const {expensive_id, expensive_category, expensive_spent ,expensive_cash} = req.body
+
+        if(!expensive_id || !expensive_category || !expensive_spent || !expensive_cash){
+            return res.status(404).json({message: 'Preencha corretamente os campos da tabela'});
+        }
+
+        const result = await db.query(
+            'UPDATE FROM "CASH" SET expensive_category = $1, expensive_spent = $2, expensive_cash = $3 where expensive_id = $4 and id_user = $5',
+            [expensive_category, expensive_spent, expensive_cash, expensive_id, userId]
+        )
+
+        if(result.rowCount === 0){
+            return res.status(404).json({message : 'Nenhum registro encontrado'})
+        }
+
+        return res.status(200).json({message : 'Campos editados com sucesso!'})
+
 
     }catch(error){
         console.error("Erro no servidor: ", error.message)
@@ -187,10 +205,5 @@ routes.put('/editar', verificarAutenticacao, async (req,res) => {
     }
 })
 
-
-
-
-
-
-
+    
 module.exports = routes;
